@@ -1,0 +1,2 @@
+# prediction_assignment_writeup
+Prediction Assignment Practical Machine Learning Coursera
