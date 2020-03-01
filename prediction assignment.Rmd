@@ -1,0 +1,64 @@
+---
+title: "Prediction assignment"
+author: "Milou Sep"
+date: "2/29/2020"
+output: html_document
+---
+
+Load testing and training data, and the caret package
+```{r setup}
+library(caret)
+read.csv("pml-testing.csv")->testing
+read.csv("pml-training.csv")->training
+```
+
+variables with missing values in test set are removed from test & training sets
+```{r}
+which(colSums(is.na(testing))==20)->missing.te
+testing[,-missing.te]->test.cc
+
+# which(colSums(is.na(training))==19622)->missing.tr
+training[,-missing.te]->train.cc
+
+```
+
+
+Change all variables to numeric in both datasets
+```{r}
+train.cc <- data.frame(lapply(train.cc, function(x) as.numeric(x)))
+ train.cc$classe<-as.factor(train.cc$classe)
+ test.cc <- data.frame(lapply(test.cc, function(x) as.numeric((x))))
+
+ #classe is niet aanwezig in testing?
+ # testing$classe<-as.factor(testing$classe)
+```
+
+set-up 5-fold crossvalidation & train a random forest model.
+All variables in data were used as predictors (msising values were ignored).
+```{r}
+set.seed(1234)
+trainControl(method = 'cv', number=5)->control.cv
+train(classe~., 
+      method='rf', 
+      data=train.cc, 
+      trControl = control.cv)->rf.m
+ #saveRDS(rf.m,'rfm.RDS')
+```
+
+Inspect the final model
+```{r}
+# readRDS('rfm.RDS')->rf.m
+rf.m$finalModel
+```
+The OOB estimate of error rate is 0.01%
+
+Predict the scores in the test data
+```{r}
+predict(rf.m,test.cc)->pred.rf
+```
+
+All new cases in class1
+```{r}
+plot(pred.rf)
+```
+
